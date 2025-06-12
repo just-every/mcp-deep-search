@@ -4,22 +4,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-A fast, efficient screenshot capture tool optimized for Claude Vision API. It captures high-quality screenshots with automatic resolution limiting (1072x1072) and tiling for optimal AI processing. Provides both CLI and MCP server interfaces.
+MCP server for deep web search using @just-every/search. Provides both CLI and MCP interfaces for searching across multiple providers including Google, Bing, Brave, DuckDuckGo, and more.
 
 ## Core Modules & Files
 
-- `src/internal/screenshotCapture.ts`: Core Puppeteer-based capture logic
-- `src/utils/`: Logger and chunking utilities
-- `src/index.ts`: CLI interface using Commander
 - `src/serve.ts`: MCP server using SDK
-- No caching - always captures fresh content
+- `src/index.ts`: CLI interface using Commander
+- `src/types.d.ts`: TypeScript definitions
+- Uses @just-every/search for all search functionality
 
 ## Commands
 
 ### Development
 ```bash
-npm run dev capture <URL> -o out.png # Capture screenshot (tiled by default)
-npm run dev capture <URL> --no-full-page -o out.png # Viewport only
+npm run dev search "query"           # Search via CLI
+npm run dev search "query" -p brave  # Use specific provider
 npm run serve:dev                    # Run MCP server in dev mode
 ```
 
@@ -39,32 +38,28 @@ npm test                             # Run tests with Vitest
 
 ## Architecture Overview
 
-A TypeScript-based screenshot tool optimized for AI vision models, particularly Claude Vision API. Captures high-quality screenshots with intelligent tiling for large pages.
+A TypeScript-based MCP server that wraps @just-every/search to provide web search capabilities through the Model Context Protocol.
 
 ### Core Components
 
-1. **Screenshot Engine** (`src/internal/screenshotCapture.ts`)
-   - Puppeteer-based headless Chrome automation
-   - Automatic viewport limiting (1072x1072 for Claude Vision)
-   - Smart page tiling for full-page captures
-   - Configurable wait strategies
+1. **MCP Server** (`src/serve.ts`)
+   - SDK-based MCP implementation
+   - Exposes `deep_search` tool
+   - Formats search results for AI consumption
+   - Supports multiple search providers
 
 2. **CLI Interface** (`src/index.ts`)
    - Commander-based command line tool
-   - Support for various output formats
-   - Flexible viewport and wait options
-
-3. **MCP Server** (`src/serve.ts`)
-   - SDK-based MCP implementation
-   - Real-time screenshot capture
-   - No caching for always-fresh content
+   - Search command with provider selection
+   - JSON output option
+   - AI answer support
 
 ### Key Patterns
 
-- Browser instance reuse for performance
-- Automatic resolution optimization for AI models
-- Graceful error handling and retries
-- Memory-efficient tiling algorithm
+- Environment variables for API keys
+- Async/await for all operations
+- Proper error handling
+- Minimal dependencies
 
 ## Pre-Commit Requirements
 
@@ -89,77 +84,81 @@ Only commit if all commands succeed without errors.
 
 - Async/await for all asynchronous operations
 - Proper error handling with detailed messages
-- Resource cleanup (browser instances)
+- Environment variable usage for API keys
 - Minimal dependencies for fast installs
 
 ## Testing Instructions
 
 - Run tests with `npm test`
-- Test different viewport sizes
-- Verify tiling algorithm correctness
-- Test error scenarios (timeouts, invalid URLs)
+- Test different search providers
+- Verify API key handling
+- Test error scenarios
 
 ## Repository Etiquette
 
 - Branch names: `feature/description`, `fix/issue-number`
 - Conventional commits (`feat:`, `fix:`, `chore:`)
 - Update README for user-facing changes
-- Include screenshot examples for visual changes
+- Document any new search providers
 
 ## Developer Environment Setup
 
 1. Clone repository
 2. Install Node.js 20.x or higher
 3. Run `npm install`
-4. Puppeteer will auto-download Chrome
+4. Create `.env` file with API keys
 5. Run `npm run dev` for development
 
 ## Package Management
 
-- Puppeteer is the main dependency
-- Keep Puppeteer version pinned for consistency
-- Monitor bundle size for MCP deployment
+- @just-every/search is the main dependency
+- Keep dependencies minimal
 - Document any new dependencies
+- Monitor bundle size
 
 ## Project-Specific Warnings
 
-- **Memory Usage**: Large pages can consume significant memory during tiling
-- **Chrome Process**: Ensure proper cleanup to avoid zombie processes
-- **File Sizes**: Tiled screenshots can create large output files
-- **Timeouts**: Some sites may require longer wait times
-- **Headless Detection**: Some sites block headless browsers
+- **API Keys**: Ensure API keys are properly configured
+- **Rate Limits**: Be aware of provider rate limits
+- **Error Handling**: Some providers may fail - handle gracefully
+- **Provider Support**: Not all providers support all features
 
-## Key Utility Functions & APIs
+## Key APIs
 
-- `captureScreenshot()`: Main capture function
-- `tilePage()`: Splits large pages into tiles
-- `waitForPage()`: Implements various wait strategies
-- `optimizeViewport()`: Ensures Claude Vision compatibility
+- `search()`: Main search function from @just-every/search
+- Provider options: google, bing, brave, duckduckgo, perplexity, exa, serper, tavily
+- Support for AI answers (provider-dependent)
 
 ## MCP Server Integration
 
 When running as MCP server (`npm run serve`):
 
 **Tools:**
-- `screenshot_website_fast` - Full page capture with automatic tiling
+- `deep_search` - Perform web searches with multiple providers
 
 **Features:**
-- No caching - always fresh screenshots
-- Automatic resolution optimization
-- Error handling with descriptive messages
+- Multiple search providers
+- AI-generated answers (when supported)
+- Configurable result limits
+- Formatted output for AI consumption
 
 ## Troubleshooting
 
 ### Common Issues
 
-- **Puppeteer installation**: Check firewall/proxy settings
-- **Memory errors**: Reduce viewport size or disable full-page
-- **Timeout errors**: Increase wait time or change wait strategy
-- **Chrome crashes**: Check system resources
+- **Missing API keys**: Check .env file
+- **Provider errors**: Some providers may be temporarily unavailable
+- **Rate limiting**: Reduce request frequency
+- **Invalid queries**: Check query formatting
 
 ### Debug Mode
 
 Enable verbose logging:
 ```bash
-DEBUG=screenshot:* npm run dev capture <URL>
+DEBUG=* npm run dev search "query"
 ```
+# important-instruction-reminders
+Do what has been asked; nothing more, nothing less.
+NEVER create files unless they're absolutely necessary for achieving your goal.
+ALWAYS prefer editing an existing file to creating a new one.
+NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.

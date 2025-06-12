@@ -1,44 +1,36 @@
-# @just-every/mcp-screenshot-website-fast
+# MCP Deep Search
 
-Fast, efficient screenshot capture tool for web pages - optimized for Claude Vision API. Automatically tiles full pages into 1072x1072 chunks for optimal AI processing.
+[![npm version](https://badge.fury.io/js/%40just-every%2Fmcp-deep-search.svg)](https://www.npmjs.com/package/@just-every/mcp-deep-search)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-[![npm version](https://badge.fury.io/js/@just-every%2Fmcp-screenshot-website-fast.svg)](https://www.npmjs.com/package/@just-every/mcp-screenshot-website-fast)
-[![GitHub Actions](https://github.com/just-every/mcp-screenshot-website-fast/workflows/Release/badge.svg)](https://github.com/just-every/mcp-screenshot-website-fast/actions)
-
-## Overview
-
-Built specifically for AI vision workflows, this tool captures high-quality screenshots with automatic resolution limiting and tiling for optimal processing by Claude Vision API and other AI models. It ensures screenshots are perfectly sized at 1072x1072 pixels (1.15 megapixels) for maximum compatibility.
+MCP server for deep web search using [@just-every/search](https://github.com/just-every/search). Provides both CLI and MCP interfaces for searching across multiple providers.
 
 ## Features
 
-- 📸 **Fast screenshot capture** using Puppeteer headless browser
-- 🎯 **Claude Vision optimized** with automatic resolution limiting (1072x1072 for optimal 1.15 megapixels)
-- 🔲 **Automatic tiling** - Full pages are automatically split into 1072x1072 tiles
-- 🔄 **Always fresh content** - No caching ensures up-to-date screenshots
-- 📱 **Configurable viewports** for responsive testing
-- ⏱️ **Wait strategies** for dynamic content (networkidle, custom delays)
-- 📄 **Full page capture** by default for complete page screenshots
-- 📦 **Minimal dependencies** for fast npm installs
-- 🔌 **MCP integration** for seamless AI workflows
+- 🔍 **Multiple Search Providers**: Google, Bing, Brave, DuckDuckGo, Perplexity, and more
+- 🤖 **AI-Powered Answers**: Get AI-generated answers when supported by the provider
+- 🛠️ **MCP Server**: Use as a Model Context Protocol server with Claude, Cursor, or other MCP clients
+- 💻 **CLI Tool**: Command-line interface for quick searches
+- 📦 **Simple Integration**: Easy to use with any MCP-compatible application
 
 ## Installation
 
 ### Claude Code
 
 ```bash
-claude mcp add screenshot-website-fast -s user -- npx -y @just-every/mcp-screenshot-website-fast
+claude mcp add deep-search -s user -- npx -y @just-every/mcp-deep-search
 ```
 
 ### VS Code
 
 ```bash
-code --add-mcp '{"name":"screenshot-website-fast","command":"npx","args":["-y","@just-every/mcp-screenshot-website-fast"]}'
+code --add-mcp '{"name":"deep-search","command":"npx","args":["-y","@just-every/mcp-deep-search"]}'
 ```
 
 ### Cursor
 
 ```bash
-cursor://anysphere.cursor-deeplink/mcp/install?name=screenshot-website-fast&config=eyJzY3JlZW5zaG90LXdlYnNpdGUtZmFzdCI6eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkBqdXN0LWV2ZXJ5L21jcC1zY3JlZW5zaG90LXdlYnNpdGUtZmFzdCJdfX0=
+cursor://anysphere.cursor-deeplink/mcp/install?name=deep-search&config=eyJkZWVwLXNlYXJjaCI6eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkBqdXN0LWV2ZXJ5L21jcC1kZWVwLXNlYXJjaCJdfX0=
 ```
 
 ### JetBrains IDEs
@@ -48,7 +40,7 @@ Settings → Tools → AI Assistant → Model Context Protocol (MCP) → Add
 Choose "As JSON" and paste:
 
 ```json
-{"command":"npx","args":["-y","@just-every/mcp-screenshot-website-fast"]}
+{"command":"npx","args":["-y","@just-every/mcp-deep-search"]}
 ```
 
 ### Raw JSON (works in any MCP client)
@@ -56,9 +48,14 @@ Choose "As JSON" and paste:
 ```json
 {
   "mcpServers": {
-    "screenshot-website-fast": {
+    "deep-search": {
       "command": "npx",
-      "args": ["-y", "@just-every/mcp-screenshot-website-fast"]
+      "args": ["-y", "@just-every/mcp-deep-search"],
+      "env": {
+        "OPENAI_API_KEY": "your-key",
+        "GOOGLE_API_KEY": "your-key"
+        // Add other API keys as needed
+      }
     }
   }
 }
@@ -66,75 +63,90 @@ Choose "As JSON" and paste:
 
 Drop this into your client's mcp.json (e.g. .vscode/mcp.json, ~/.cursor/mcp.json, or .mcp.json for Claude).
 
-## Prerequisites
+## Configuration
 
-- Node.js 20.x or higher
-- npm or npx
-- Chrome/Chromium (automatically downloaded by Puppeteer)
+Create a `.env` file with your API keys:
 
-## Quick Start
+```env
+OPENAI_API_KEY=your-openai-key
+ANTHROPIC_API_KEY=your-anthropic-key
+GOOGLE_API_KEY=your-google-key
+BRAVE_API_KEY=your-brave-key
+# Add other provider API keys as needed
+```
+
+## Usage
+
+### CLI Usage
+
+```bash
+# Basic search
+mcp-deep-search search "your query"
+
+# Search with specific provider
+mcp-deep-search search "your query" -p brave
+
+# Get more results
+mcp-deep-search search "your query" -n 20
+
+# Include AI answer
+mcp-deep-search search "your query" -a
+
+# Save results to file
+mcp-deep-search search "your query" -o results.json
+```
 
 ### MCP Server Usage
 
-Once installed in your IDE, the following tools are available:
+Once installed in your IDE, the following tool is available:
 
-#### Available Tools
+#### `deep_search`
 
-- `screenshot_website_fast` - Captures a high-quality screenshot of a webpage
-  - Parameters:
-    - `url` (required): The HTTP/HTTPS URL to capture
-    - `width` (optional): Viewport width in pixels (max 1072, default: 1072)
-    - `height` (optional): Viewport height in pixels (max 1072, default: 1072)
-    - `fullPage` (optional): Capture full page screenshot (default: true)
-    - `waitUntil` (optional): Wait until event: load, domcontentloaded, networkidle0, networkidle2 (default: networkidle2)
-    - `waitFor` (optional): Additional wait time in milliseconds
+Perform deep web searches using multiple search providers.
 
-## Development Usage
+**Parameters:**
+- `query` (required): The search query
+- `provider`: Search provider to use (default: google)
+- `maxResults`: Maximum number of results (default: 10)
+- `includeAnswer`: Include AI-generated answer if available (default: false)
 
-### Install
-
-```bash
-npm install
-npm run build
+**Example:**
+```javascript
+{
+  "tool": "deep_search",
+  "arguments": {
+    "query": "latest AI developments",
+    "provider": "brave",
+    "maxResults": 10,
+    "includeAnswer": true
+  }
+}
 ```
 
-### Capture screenshot
-```bash
-# Full page with automatic tiling (default)
-npm run dev capture https://example.com -o screenshot.png
+### Available Search Providers
 
-# Viewport-only screenshot  
-npm run dev capture https://example.com --no-full-page -o screenshot.png
+- **brave** - Privacy-first search using Brave's independent index (requires BRAVE_API_KEY)
+- **anthropic** - Deep multi-hop research with strong source citations (requires ANTHROPIC_API_KEY)
+- **openai** - ChatGPT-grade contextual search (requires OPENAI_API_KEY)
+- **google** - Fresh breaking-news facts via Gemini grounding (requires GOOGLE_API_KEY)
+- **sonar** - Lightweight Perplexity search (requires OPENROUTER_API_KEY)
+- **sonar-pro** - Advanced Perplexity search (requires OPENROUTER_API_KEY)
+- **sonar-deep-research** - Expert-level Perplexity research (requires OPENROUTER_API_KEY)
+- **xai** - Real-time web search via Grok (requires XAI_API_KEY)
 
-# Wait for specific conditions
-npm run dev capture https://example.com --wait-until networkidle0 --wait-for 2000 -o screenshot.png
-```
-
-### CLI Options
-
-- `-w, --width <pixels>` - Viewport width (max 1072, default: 1072)
-- `-h, --height <pixels>` - Viewport height (max 1072, default: 1072)
-- `--no-full-page` - Disable full page capture and tiling
-- `--wait-until <event>` - Wait until event: load, domcontentloaded, networkidle0, networkidle2
-- `--wait-for <ms>` - Additional wait time in milliseconds
-- `-o, --output <path>` - Output file path (required for tiled output)
-
-## Architecture
-
-```
-mcp-screenshot-website-fast/
-├── src/
-│   ├── internal/       # Core screenshot capture logic
-│   ├── utils/          # Logger and utilities
-│   ├── index.ts        # CLI entry point
-│   └── serve.ts        # MCP server entry point
-```
+**Note:** Each provider requires its corresponding API key to be set in the environment variables or .env file.
 
 ## Development
 
 ```bash
+# Install dependencies
+npm install
+
 # Run in development mode
-npm run dev capture https://example.com -o screenshot.png
+npm run dev search "test query"
+
+# Run MCP server in development
+npm run serve:dev
 
 # Build for production
 npm run build
@@ -142,49 +154,37 @@ npm run build
 # Run tests
 npm test
 
-# Type checking
-npm run typecheck
-
-# Linting
+# Lint code
 npm run lint
+
+# Type check
+npm run typecheck
 ```
 
-## Why This Tool?
+## Architecture
 
-Built specifically for AI vision workflows:
+```
+mcp-deep-search/
+├── src/
+│   ├── index.ts        # CLI entry point
+│   ├── serve.ts        # MCP server entry point
+│   └── types.d.ts      # TypeScript definitions
+```
 
-1. **Optimized for Claude Vision API** - Automatic resolution limiting to 1072x1072 pixels (1.15 megapixels)
-2. **Automatic tiling** - Full pages split into perfect chunks for AI processing
-3. **Always fresh** - No caching ensures you get the latest content
-4. **MCP native** - First-class integration with AI development tools
-5. **Simple API** - Clean, straightforward interface for capturing screenshots
+## Prerequisites
 
-## Contributing
-
-Contributions are welcome! Please:
-
-1. Fork the repository
-2. Create a feature branch
-3. Add tests for new functionality
-4. Submit a pull request
-
-## Troubleshooting
-
-### Puppeteer Issues
-- Ensure Chrome/Chromium can be downloaded
-- Check firewall settings
-- Try setting `PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true` and provide custom executable
-
-### Screenshot Quality
-- Adjust viewport dimensions
-- Use appropriate wait strategies
-- Check if site requires authentication
-
-### Timeout Errors
-- Increase wait time with `--wait-for` flag
-- Use different `--wait-until` strategies
-- Check if site is accessible
+- Node.js 20.x or higher
+- npm or npx
+- API keys for search providers you want to use
 
 ## License
 
-MIT
+MIT © Just Every
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## Issues
+
+If you encounter any issues with @just-every/search while using this MCP, please report them so we can fix them.

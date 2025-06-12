@@ -1,10 +1,10 @@
 {
-  "name": "@just-every/mcp-screenshot-website-fast",
+  "name": "@just-every/mcp-deep-search",
   "version": "0.1.10",
-  "description": "Fast screenshot capture tool for web pages - optimized for Claude Vision API",
+  "description": "MCP server for deep web search using @just-every/search",
   "main": "dist/index.js",
   "bin": {
-    "mcp-screenshot-website-fast": "bin/mcp-screenshot-website.js"
+    "mcp-deep-search": "bin/mcp-deep-search.js"
   },
   "files": [
     "dist/**/*",
@@ -29,11 +29,9 @@
     "mcp",
     "mcp-server",
     "model-context-protocol",
-    "screenshot",
-    "web-capture",
-    "puppeteer",
-    "headless",
-    "vision",
+    "search",
+    "web-search",
+    "deep-search",
     "llm",
     "claude",
     "cursor",
@@ -42,26 +40,30 @@
   "author": "Just Every",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/just-every/mcp-screenshot-website-fast.git"
+    "url": "git+https://github.com/just-every/mcp-deep-search.git"
   },
   "bugs": {
-    "url": "https://github.com/just-every/mcp-screenshot-website-fast/issues"
+    "url": "https://github.com/just-every/mcp-deep-search/issues"
   },
-  "homepage": "https://github.com/just-every/mcp-screenshot-website-fast#readme",
+  "homepage": "https://github.com/just-every/mcp-deep-search#readme",
   "license": "MIT",
   "dependencies": {
+    "@just-every/search": "^1.0.4",
     "@modelcontextprotocol/sdk": "^1.12.1",
     "commander": "^14.0.0",
-    "puppeteer": "^24.0.0",
-    "sharp": "^0.34.0"
+    "dotenv": "^16.0.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.28.0",
     "@types/node": "^24.0.0",
     "@typescript-eslint/eslint-plugin": "^8.34.0",
     "@typescript-eslint/parser": "^8.34.0",
     "eslint": "^9.28.0",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-prettier": "^5.4.1",
     "tsx": "^4.7.0",
     "typescript": "^5.8.3",
+    "typescript-eslint": "^8.34.0",
     "vitest": "^3.2.3"
   },
   "engines": {

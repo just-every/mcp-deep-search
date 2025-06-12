@@ -1,99 +1,112 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-import { captureScreenshot, closeBrowser } from './internal/screenshotCapture.js';
-import { ScreenshotOptions, TiledScreenshotResult } from './types.js';
+import { web_search } from '@just-every/search';
 import { readFileSync, writeFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import * as dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Read package.json for version
 const packageJson = JSON.parse(
-  readFileSync(join(__dirname, '../package.json'), 'utf-8')
+    readFileSync(join(__dirname, '../package.json'), 'utf-8')
 );
 
 const program = new Command();
 
 program
-  .name('mcp-screenshot')
-  .description('Fast screenshot capture tool for web pages - optimized for Claude Vision API')
-  .version(packageJson.version);
+    .name('mcp-deep-search')
+    .description('MCP server for deep web search using @just-every/search')
+    .version(packageJson.version);
 
 program
-  .command('capture <url>')
-  .description('Capture a screenshot of a URL')
-  .option('-w, --width <pixels>', 'Viewport width (max 1072)', '1072')
-  .option('-h, --height <pixels>', 'Viewport height (max 1072)', '1072')
-  .option('--no-full-page', 'Disable full page capture and tiling')
-  .option('--wait-until <event>', 'Wait until event: load, domcontentloaded, networkidle0, networkidle2', 'domcontentloaded')
-  .option('--wait-for <ms>', 'Additional wait time in milliseconds')
-  .option('-o, --output <path>', 'Output file path (required for tiled output)')
-  .action(async (url: string, options) => {
-    try {
-      const screenshotOptions: ScreenshotOptions = {
-        url,
-        viewport: {
-          width: Math.min(parseInt(options.width, 10), 1072),
-          height: Math.min(parseInt(options.height, 10), 1072)
-        },
-        fullPage: options.fullPage !== false,  // Default to true unless explicitly disabled
-        waitUntil: options.waitUntil,
-        waitFor: options.waitFor ? parseInt(options.waitFor, 10) : undefined
-      };
+    .command('search <query>')
+    .description('Perform a web search')
+    .option(
+        '-p, --provider <provider>',
+        'Search provider (brave, anthropic, openai, google, etc.)',
+        'brave'
+    )
+    .option('-n, --max-results <number>', 'Maximum number of results', '10')
+    .option('-a, --include-answer', 'Include AI-generated answer if available')
+    .option('-o, --output <path>', 'Output results to file (JSON format)')
+    .action(async (query: string, options) => {
+        try {
+            console.error(`🔍 Searching for: "${query}"`);
+            console.error(`📍 Provider: ${options.provider}`);
 
-      console.error(`Capturing screenshot of ${url}...`);
-      const result = await captureScreenshot(screenshotOptions);
+            const resultsJson = await web_search(
+                options.provider || 'brave',
+                query,
+                parseInt(options.maxResults, 10)
+            );
 
-      if ('tiles' in result) {
-        // Handle tiled screenshot
-        const tiledResult = result as TiledScreenshotResult;
-        console.error(`✅ Screenshot captured successfully!`);
-        console.error(`📐 Full page dimensions: ${tiledResult.fullWidth}x${tiledResult.fullHeight}`);
-        console.error(`🔲 Created ${tiledResult.tiles.length} tiles of ${tiledResult.tileSize}x${tiledResult.tileSize} each`);
-        
-        if (options.output) {
-          // Save tiles with numbered filenames
-          const ext = '.png';
-          const base = options.output.endsWith(ext) ? options.output.slice(0, -ext.length) : options.output;
-          
-          for (const tile of tiledResult.tiles) {
-            const filename = `${base}-tile-${tile.row}-${tile.col}${ext}`;
-            writeFileSync(filename, tile.screenshot);
-            console.error(`Saved tile ${tile.row},${tile.col} to: ${filename} (${tile.width}x${tile.height})`);
-          }
-        } else {
-          console.error('Error: Full page tiled output requires -o/--output flag');
-          process.exit(1);
+            let results;
+            try {
+                results = JSON.parse(resultsJson);
+            } catch (parseError) {
+                console.error('Raw response:', resultsJson);
+                throw new Error(`Failed to parse search results: ${parseError}`);
+            }
+
+            // Format output
+            const output = {
+                query,
+                provider: options.provider,
+                timestamp: new Date().toISOString(),
+                answer: results.answer,
+                results: results.results,
+            };
+
+            if (options.output) {
+                // Save to file
+                writeFileSync(options.output, JSON.stringify(output, null, 2));
+                console.error(`✅ Results saved to: ${options.output}`);
+            } else {
+                // Output to console
+                if (results.answer) {
+                    console.log('\n📝 AI Answer:');
+                    console.log(results.answer);
+                    console.log('\n---\n');
+                }
+
+                if (results.results && results.results.length > 0) {
+                    console.log('🔍 Search Results:\n');
+                    results.results.forEach((result: any, index: number) => {
+                        console.log(`${index + 1}. ${result.title}`);
+                        console.log(`   URL: ${result.link}`);
+                        if (result.snippet) {
+                            console.log(`   ${result.snippet}`);
+                        }
+                        console.log();
+                    });
+                }
+
+                console.error(
+                    `\n✅ Found ${results.results?.length || 0} results`
+                );
+            }
+        } catch (error) {
+            console.error(
+                '❌ Error:',
+                error instanceof Error ? error.message : error
+            );
+            process.exit(1);
         }
-      } else {
-        // Handle regular screenshot
-        if (options.output) {
-          writeFileSync(options.output, result.screenshot);
-          console.error(`✅ Screenshot saved to: ${options.output}`);
-          console.error(`📐 Dimensions: ${result.viewport.width}x${result.viewport.height}`);
-        } else {
-          // Output binary data to stdout
-          process.stdout.write(result.screenshot);
-        }
-      }
-
-      await closeBrowser();
-    } catch (error) {
-      console.error('Error:', error instanceof Error ? error.message : error);
-      await closeBrowser();
-      process.exit(1);
-    }
-  });
+    });
 
 program
-  .command('serve')
-  .description('Run as an MCP server')
-  .action(async () => {
-    // Import and run the serve module
-    await import('./serve.js');
-  });
+    .command('serve')
+    .description('Run as an MCP server')
+    .action(async () => {
+        // Import and run the serve module
+        await import('./serve.js');
+    });
 
 program.parse();

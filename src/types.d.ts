@@ -1,40 +1,22 @@
-export interface ScreenshotOptions {
-  url: string;
-  viewport?: {
-    width: number;
-    height: number;
-  };
-  fullPage?: boolean;
-  waitUntil?: 'load' | 'domcontentloaded' | 'networkidle0' | 'networkidle2';
-  waitFor?: number;
+// Type definitions for mcp-deep-search
+
+export interface SearchOptions {
+    query: string;
+    provider?: string;
+    maxResults?: number;
+    includeAnswer?: boolean;
 }
 
-export interface ScreenshotResult {
-  url: string;
-  screenshot: Buffer;
-  timestamp: Date;
-  viewport: {
-    width: number;
-    height: number;
-  };
-  format: 'png';
+export interface SearchResult {
+    title: string;
+    link: string;
+    snippet?: string;
+    [key: string]: any;
 }
 
-export interface TiledScreenshotResult {
-  url: string;
-  tiles: {
-    screenshot: Buffer;
-    index: number;
-    row: number;
-    col: number;
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  }[];
-  timestamp: Date;
-  fullWidth: number;
-  fullHeight: number;
-  tileSize: number;
-  format: 'png';
+export interface SearchResponse {
+    provider?: string;
+    answer?: string;
+    results?: SearchResult[];
+    [key: string]: any;
 }
