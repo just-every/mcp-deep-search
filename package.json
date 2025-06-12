@@ -1,6 +1,6 @@
 {
   "name": "@just-every/mcp-deep-search",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "description": "MCP server for deep web search using @just-every/search",
   "main": "dist/index.js",
   "bin": {
