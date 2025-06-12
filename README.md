@@ -136,6 +136,10 @@ Perform deep web searches using multiple search providers.
 
 **Note:** Each provider requires its corresponding API key to be set in the environment variables or .env file.
 
+**Current Status (v0.1.10):** 
+- ✅ Brave search provider works correctly with .env file
+- ⚠️ Other providers (Anthropic, OpenAI, Google, etc.) have issues reading environment variables from .env files due to a bug in the @just-every/ensemble dependency. As a workaround, set these environment variables before running the process.
+
 ## Development
 
 ```bash

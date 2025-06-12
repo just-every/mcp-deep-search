@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 
+// Load environment variables BEFORE importing other modules
+import * as dotenv from 'dotenv';
+dotenv.config();
+
 import { Command } from 'commander';
 import { web_search } from '@just-every/search';
 import { readFileSync, writeFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import * as dotenv from 'dotenv';
-
-// Load environment variables
-dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -51,8 +51,12 @@ program
             try {
                 results = JSON.parse(resultsJson);
             } catch (parseError) {
-                console.error('Raw response:', resultsJson);
                 throw new Error(`Failed to parse search results: ${parseError}`);
+            }
+            
+            // Handle the new format where results are directly an array
+            if (Array.isArray(results)) {
+                results = { results: results };
             }
 
             // Format output
@@ -80,7 +84,7 @@ program
                     console.log('🔍 Search Results:\n');
                     results.results.forEach((result: any, index: number) => {
                         console.log(`${index + 1}. ${result.title}`);
-                        console.log(`   URL: ${result.link}`);
+                        console.log(`   URL: ${result.url || result.link}`);
                         if (result.snippet) {
                             console.log(`   ${result.snippet}`);
                         }

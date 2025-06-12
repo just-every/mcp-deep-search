@@ -1,4 +1,9 @@
 #!/usr/bin/env node
+
+// Load environment variables BEFORE importing other modules
+import * as dotenv from 'dotenv';
+dotenv.config();
+
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import {
@@ -10,10 +15,6 @@ import {
     type Resource,
 } from '@modelcontextprotocol/sdk/types.js';
 import { web_search } from '@just-every/search';
-import * as dotenv from 'dotenv';
-
-// Load environment variables
-dotenv.config();
 
 const server = new Server(
     {
@@ -95,7 +96,12 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
             args.maxResults || 10
         );
 
-        const results = JSON.parse(resultsJson);
+        let results = JSON.parse(resultsJson);
+        
+        // Handle the new format where results are directly an array
+        if (Array.isArray(results)) {
+            results = { results: results };
+        }
 
         // Format the results for MCP
         const content = [];
@@ -113,7 +119,7 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
             let resultsText = '**Search Results:**\n\n';
             results.results.forEach((result: any, index: number) => {
                 resultsText += `${index + 1}. **${result.title}**\n`;
-                resultsText += `   URL: ${result.link}\n`;
+                resultsText += `   URL: ${result.url || result.link}\n`;
                 if (result.snippet) {
                     resultsText += `   ${result.snippet}\n`;
                 }
