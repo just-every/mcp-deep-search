@@ -5,7 +5,7 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 import { Command } from 'commander';
-import { web_search } from '@just-every/search';
+import { web_search, web_search_task } from '@just-every/search';
 import { readFileSync, writeFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -48,12 +48,12 @@ program
             );
 
             let results;
-            
+
             // Check if the response is an error
             if (resultsJson.startsWith('Error:')) {
                 throw new Error(resultsJson);
             }
-            
+
             // Try to parse as JSON
             try {
                 results = JSON.parse(resultsJson);
@@ -61,11 +61,11 @@ program
                 if (Array.isArray(results)) {
                     results = { results: results };
                 }
-            } catch (parseError) {
+            } catch {
                 // If not JSON, treat as plain text answer
                 results = {
                     answer: resultsJson,
-                    results: []
+                    results: [],
                 };
             }
 
@@ -105,6 +105,43 @@ program
                 console.error(
                     `\n✅ Found ${results.results?.length || 0} results`
                 );
+            }
+        } catch (error) {
+            console.error(
+                '❌ Error:',
+                error instanceof Error ? error.message : error
+            );
+            process.exit(1);
+        }
+    });
+
+program
+    .command('research <query>')
+    .description(
+        'Perform comprehensive research using multiple search engines automatically'
+    )
+    .option(
+        '-m, --model-class <class>',
+        'AI model class to use',
+        'reasoning_mini'
+    )
+    .option('-o, --output <path>', 'Output report to file')
+    .action(async (query: string, options) => {
+        try {
+            console.error(`🔬 Starting comprehensive research on: "${query}"`);
+            console.error(`🤖 Using model class: ${options.modelClass}\n`);
+
+            const report = await web_search_task(query, options.modelClass);
+
+            if (options.output) {
+                // Save to file
+                writeFileSync(options.output, report);
+                console.error(
+                    `\n✅ Research report saved to: ${options.output}`
+                );
+            } else {
+                // Output to console
+                console.log(report);
             }
         } catch (error) {
             console.error(

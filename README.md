@@ -98,15 +98,15 @@ mcp-deep-search search "your query" -o results.json
 
 ### MCP Server Usage
 
-Once installed in your IDE, the following tool is available:
+Once installed in your IDE, the following tools are available:
 
 #### `deep_search`
 
-Perform deep web searches using multiple search providers.
+Perform deep web searches using a specific search provider.
 
 **Parameters:**
 - `query` (required): The search query
-- `provider`: Search provider to use (default: google)
+- `provider`: Search provider to use (default: brave)
 - `maxResults`: Maximum number of results (default: 10)
 - `includeAnswer`: Include AI-generated answer if available (default: false)
 
@@ -119,6 +119,26 @@ Perform deep web searches using multiple search providers.
     "provider": "brave",
     "maxResults": 10,
     "includeAnswer": true
+  }
+}
+```
+
+#### `comprehensive_research`
+
+Perform comprehensive research using multiple search engines automatically with AI agents. This tool intelligently selects appropriate search engines, runs parallel searches, and compiles a comprehensive report.
+
+**Parameters:**
+- `query` (required): The research topic or question
+- `modelClass`: AI model class to use (default: reasoning_mini)
+  - Options: standard, mini, reasoning, reasoning_mini, monologue, metacognition, code, writing, summary, vision, vision_mini, search, image_generation, embedding, voice
+
+**Example:**
+```javascript
+{
+  "tool": "comprehensive_research",
+  "arguments": {
+    "query": "What are the latest breakthroughs in quantum computing?",
+    "modelClass": "reasoning"
   }
 }
 ```
