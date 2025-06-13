@@ -48,7 +48,7 @@
   "homepage": "https://github.com/just-every/mcp-deep-search#readme",
   "license": "MIT",
   "dependencies": {
-    "@just-every/search": "^1.0.6",
+    "@just-every/search": "^1.0.7",
     "@modelcontextprotocol/sdk": "^1.12.2",
     "commander": "^14.0.0",
     "dotenv": "^16.5.0"
