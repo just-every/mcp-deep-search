@@ -49,7 +49,7 @@ All providers should successfully read their API keys from process.env and execu
 - **All other providers**: ❌ Fail with API key errors
 
 ### Error Messages
-- **Anthropic**: `Error: Failed to initialize Claude client. Make sure ANTHROPIC_API_KEY is set.`
+- **Anthropic**: `Error: max_tokens must be greater than thinking.budget_tokens` (appears to be using extended thinking feature incorrectly)
 - **OpenAI**: `Error: Failed to initialize OpenAI client. Make sure OPENAI_API_KEY is set.`
 - **Google**: `Error: Failed to initialize Gemini client. GOOGLE_API_KEY is missing or not provided.`
 - **OpenRouter/Sonar**: `Error: Failed to initialize OpenAI client for openrouter. API key is missing.`
@@ -114,6 +114,8 @@ class ClaudeProvider {
 This bug prevents MCP servers and other applications from using search providers with dynamically loaded configuration, which is a common pattern in Node.js applications.
 
 ## Additional Notes
-- The Brave provider in @just-every/search v1.0.5 works correctly, suggesting it's implemented differently than the LLM-based providers
-- This affects all LLM-based search providers (Anthropic, OpenAI, Google, Perplexity, XAI)
-- The issue is blocking proper integration of these providers in the mcp-deep-search project
+- The Brave provider in @just-every/search v1.0.6 works correctly, suggesting it's implemented differently than the LLM-based providers
+- With v1.0.6, most environment variable issues are fixed, but:
+  - Anthropic has a new error about `max_tokens` vs `thinking.budget_tokens`
+  - OpenRouter/Perplexity providers still have env var issues
+- LLM providers (OpenAI, Google, XAI) now work but return conversational text instead of structured search results
