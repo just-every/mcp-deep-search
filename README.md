@@ -136,9 +136,13 @@ Perform deep web searches using multiple search providers.
 
 **Note:** Each provider requires its corresponding API key to be set in the environment variables or .env file.
 
-**Current Status (v0.1.10):** 
-- ✅ Brave search provider works correctly with .env file
-- ⚠️ Other providers (Anthropic, OpenAI, Google, etc.) have issues reading environment variables from .env files due to a bug in the @just-every/ensemble dependency. As a workaround, set these environment variables before running the process.
+**Current Status (v0.1.12):** 
+- ✅ **Brave** - Works perfectly, returns search results in JSON format
+- ✅ **OpenAI, Google, XAI** - Environment variables now work! But they return conversational responses instead of search results
+- ❌ **Anthropic** - Has a configuration error with the model parameters
+- ⚠️ **Perplexity (sonar)** - Still has environment variable issues
+
+**Note:** The LLM-based providers (OpenAI, Google, XAI) are returning conversational responses rather than structured search results. This appears to be how they're implemented in @just-every/search v1.0.6.
 
 ## Development
 

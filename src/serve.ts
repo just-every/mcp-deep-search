@@ -96,11 +96,26 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
             args.maxResults || 10
         );
 
-        let results = JSON.parse(resultsJson);
+        let results;
         
-        // Handle the new format where results are directly an array
-        if (Array.isArray(results)) {
-            results = { results: results };
+        // Check if the response is an error
+        if (resultsJson.startsWith('Error:')) {
+            throw new Error(resultsJson);
+        }
+        
+        // Try to parse as JSON
+        try {
+            results = JSON.parse(resultsJson);
+            // Handle the new format where results are directly an array
+            if (Array.isArray(results)) {
+                results = { results: results };
+            }
+        } catch (parseError) {
+            // If not JSON, treat as plain text answer
+            results = {
+                answer: resultsJson,
+                results: []
+            };
         }
 
         // Format the results for MCP

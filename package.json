@@ -48,20 +48,20 @@
   "homepage": "https://github.com/just-every/mcp-deep-search#readme",
   "license": "MIT",
   "dependencies": {
-    "@just-every/search": "^1.0.5",
-    "@modelcontextprotocol/sdk": "^1.12.1",
+    "@just-every/search": "^1.0.6",
+    "@modelcontextprotocol/sdk": "^1.12.2",
     "commander": "^14.0.0",
-    "dotenv": "^16.0.0"
+    "dotenv": "^16.5.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.28.0",
-    "@types/node": "^24.0.0",
+    "@types/node": "^24.0.1",
     "@typescript-eslint/eslint-plugin": "^8.34.0",
     "@typescript-eslint/parser": "^8.34.0",
     "eslint": "^9.28.0",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-prettier": "^5.4.1",
-    "tsx": "^4.7.0",
+    "tsx": "^4.20.3",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.34.0",
     "vitest": "^3.2.3"

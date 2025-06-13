@@ -48,15 +48,25 @@ program
             );
 
             let results;
-            try {
-                results = JSON.parse(resultsJson);
-            } catch (parseError) {
-                throw new Error(`Failed to parse search results: ${parseError}`);
+            
+            // Check if the response is an error
+            if (resultsJson.startsWith('Error:')) {
+                throw new Error(resultsJson);
             }
             
-            // Handle the new format where results are directly an array
-            if (Array.isArray(results)) {
-                results = { results: results };
+            // Try to parse as JSON
+            try {
+                results = JSON.parse(resultsJson);
+                // Handle the new format where results are directly an array
+                if (Array.isArray(results)) {
+                    results = { results: results };
+                }
+            } catch (parseError) {
+                // If not JSON, treat as plain text answer
+                results = {
+                    answer: resultsJson,
+                    results: []
+                };
             }
 
             // Format output
