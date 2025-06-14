@@ -2,7 +2,35 @@
 
 // Load environment variables BEFORE importing other modules
 import * as dotenv from 'dotenv';
-dotenv.config();
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
+
+// Check if ENV_FILE is specified
+if (process.env.ENV_FILE) {
+    try {
+        const envPath = resolve(process.env.ENV_FILE);
+        const envContent = readFileSync(envPath, 'utf-8');
+        
+        // Parse the env file content
+        envContent.split('\n').forEach(line => {
+            line = line.trim();
+            if (line && !line.startsWith('#')) {
+                const [key, ...valueParts] = line.split('=');
+                const value = valueParts.join('=').trim().replace(/^["']|["']$/g, '');
+                if (key && value) {
+                    process.env[key.trim()] = value;
+                }
+            }
+        });
+        
+        console.error(`[MCP] Loaded environment from: ${envPath}`);
+    } catch (error) {
+        console.error(`[MCP] Failed to load ENV_FILE: ${error}`);
+    }
+} else {
+    // Load from standard .env file if present
+    dotenv.config();
+}
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';

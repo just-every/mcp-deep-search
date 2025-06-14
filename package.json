@@ -11,7 +11,8 @@
     "bin/**/*",
     "README.md",
     "LICENSE",
-    "package.json"
+    "package.json",
+    ".env.example"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.prod.json",
