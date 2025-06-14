@@ -7,8 +7,9 @@ MCP server for deep web search using [@just-every/search](https://github.com/jus
 
 ## Quick Start
 
-### 1. Create `.llm.env` file
+### 1. Create or use an environment file
 
+Option A: Create a new `.llm.env` file in your home directory:
 ```bash
 # Download example env file
 curl -o ~/.llm.env https://raw.githubusercontent.com/just-every/mcp-deep-search/main/.env.example
@@ -17,11 +18,21 @@ curl -o ~/.llm.env https://raw.githubusercontent.com/just-every/mcp-deep-search/
 nano ~/.llm.env
 ```
 
+Option B: Use an existing `.env` file (must use absolute path):
+```bash
+# Example: /Users/yourname/projects/myproject/.env
+# Example: /home/yourname/workspace/.env
+```
+
 ### 2. Install
 
 #### Claude Code
 ```bash
+# Using ~/.llm.env
 claude mcp add deep-search -s user -- npx -y @just-every/mcp-deep-search -e ENV_FILE=$HOME/.llm.env
+
+# Using existing .env file (absolute path required)
+claude mcp add deep-search -s user -- npx -y @just-every/mcp-deep-search -e ENV_FILE=/absolute/path/to/your/.env
 ```
 
 #### Other MCP Clients

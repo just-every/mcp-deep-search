@@ -5,6 +5,11 @@ import * as dotenv from 'dotenv';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 
+// Ensure the process doesn't exit on stdio errors
+process.stdin.on('error', () => {});
+process.stdout.on('error', () => {});
+process.stderr.on('error', () => {});
+
 // Check if ENV_FILE is specified
 if (process.env.ENV_FILE) {
     try {
@@ -56,6 +61,11 @@ const server = new Server(
         },
     }
 );
+
+// Add error handling for the server instance
+server.onerror = error => {
+    console.error('[MCP Server Error]', error);
+};
 
 // Tool definitions
 const SEARCH_TOOL: Tool = {
@@ -267,20 +277,74 @@ server.setRequestHandler(ReadResourceRequestSchema, async () => {
 
 // Start the server
 async function runServer() {
+    // Create transport with explicit error handling
     const transport = new StdioServerTransport();
-    await server.connect(transport);
-    console.error('deep-search MCP server running');
 
-    // Handle graceful shutdown
-    const cleanup = async () => {
-        process.exit(0);
+    // Add transport error handling
+    transport.onerror = error => {
+        console.error('[Transport Error]', error);
+        // Don't exit on transport errors unless it's a connection close
+        if (error?.message?.includes('Connection closed')) {
+            console.error('Connection closed by client');
+            process.exit(0);
+        }
     };
 
-    process.on('SIGINT', cleanup);
-    process.on('SIGTERM', cleanup);
+    // Handle graceful shutdown
+    process.on('SIGINT', async () => {
+        console.error('Received SIGINT, shutting down gracefully...');
+        await server.close();
+        process.exit(0);
+    });
+
+    process.on('SIGTERM', async () => {
+        console.error('Received SIGTERM, shutting down gracefully...');
+        await server.close();
+        process.exit(0);
+    });
+
+    // Handle unexpected errors - be more cautious about exiting
+    process.on('uncaughtException', error => {
+        console.error('Uncaught exception:', error);
+        // Try to recover instead of immediately exiting
+        if (error && error.message && error.message.includes('EPIPE')) {
+            console.error('Pipe error detected, keeping server alive');
+            return;
+        }
+        // Only exit for truly fatal errors
+        process.exit(1);
+    });
+
+    process.on('unhandledRejection', (reason, promise) => {
+        console.error('Unhandled rejection at:', promise, 'reason:', reason);
+        // Log but don't exit for promise rejections
+    });
+
+    // Handle stdin closure
+    process.stdin.on('end', () => {
+        console.error('Stdin closed, shutting down...');
+        // Give a small delay to ensure any final messages are sent
+        setTimeout(() => process.exit(0), 100);
+    });
+
+    process.stdin.on('error', error => {
+        console.error('Stdin error:', error);
+        // Don't exit on stdin errors
+    });
+
+    try {
+        await server.connect(transport);
+        console.error('deep-search MCP server running');
+
+        // Keep the process alive
+        process.stdin.resume();
+    } catch (error) {
+        console.error('Failed to start server:', error);
+        process.exit(1);
+    }
 }
 
 runServer().catch(error => {
-    console.error('Server error:', error);
+    console.error('Server initialization error:', error);
     process.exit(1);
 });
