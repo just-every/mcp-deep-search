@@ -15,25 +15,54 @@ MCP server for deep web search using [@just-every/search](https://github.com/jus
 
 ## Installation
 
-### Claude Code
+### Quick Start with Environment Variables
+
+You have three options for configuring API keys:
+
+1. **Using a .env file** (Recommended)
+2. **Inline environment variables** in MCP configuration
+3. **System environment variables**
+
+### Option 1: Using .env File (Recommended)
+
+First, create a `.env` file in your project directory:
+
+```bash
+# Download the example .env file
+curl -o .env https://raw.githubusercontent.com/just-every/mcp-deep-search/main/.env.example
+
+# Or create manually
+cat > .env << 'EOF'
+BRAVE_API_KEY=your-brave-key
+ANTHROPIC_API_KEY=your-anthropic-key
+OPENAI_API_KEY=your-openai-key
+GOOGLE_API_KEY=your-google-key
+OPENROUTER_API_KEY=your-openrouter-key
+XAI_API_KEY=your-xai-key
+EOF
+```
+
+Then install using your preferred method:
+
+#### Claude Code
 
 ```bash
 claude mcp add deep-search -s user -- npx -y @just-every/mcp-deep-search
 ```
 
-### VS Code
+#### VS Code
 
 ```bash
 code --add-mcp '{"name":"deep-search","command":"npx","args":["-y","@just-every/mcp-deep-search"]}'
 ```
 
-### Cursor
+#### Cursor
 
 ```bash
 cursor://anysphere.cursor-deeplink/mcp/install?name=deep-search&config=eyJkZWVwLXNlYXJjaCI6eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkBqdXN0LWV2ZXJ5L21jcC1kZWVwLXNlYXJjaCJdfX0=
 ```
 
-### JetBrains IDEs
+#### JetBrains IDEs
 
 Settings → Tools → AI Assistant → Model Context Protocol (MCP) → Add
 
@@ -43,7 +72,9 @@ Choose "As JSON" and paste:
 {"command":"npx","args":["-y","@just-every/mcp-deep-search"]}
 ```
 
-### Raw JSON (works in any MCP client)
+### Option 2: Inline Environment Variables
+
+You can specify environment variables directly in your MCP configuration:
 
 ```json
 {
@@ -52,28 +83,56 @@ Choose "As JSON" and paste:
       "command": "npx",
       "args": ["-y", "@just-every/mcp-deep-search"],
       "env": {
-        "OPENAI_API_KEY": "your-key",
-        "GOOGLE_API_KEY": "your-key"
-        // Add other API keys as needed
+        "BRAVE_API_KEY": "your-brave-key",
+        "ANTHROPIC_API_KEY": "your-anthropic-key",
+        "OPENAI_API_KEY": "your-openai-key",
+        "GOOGLE_API_KEY": "your-google-key",
+        "OPENROUTER_API_KEY": "your-openrouter-key",
+        "XAI_API_KEY": "your-xai-key"
       }
     }
   }
 }
 ```
 
-Drop this into your client's mcp.json (e.g. .vscode/mcp.json, ~/.cursor/mcp.json, or .mcp.json for Claude).
+Drop this into your client's mcp.json (e.g. `.vscode/mcp.json`, `~/.cursor/mcp.json`, or `.mcp.json` for Claude).
+
+### Option 3: System Environment Variables
+
+Export the variables in your shell:
+
+```bash
+export BRAVE_API_KEY="your-brave-key"
+export ANTHROPIC_API_KEY="your-anthropic-key"
+export OPENAI_API_KEY="your-openai-key"
+# ... etc
+```
+
+Then use the standard installation commands above.
 
 ## Configuration
 
-Create a `.env` file with your API keys:
+### Environment Variables
 
-```env
-OPENAI_API_KEY=your-openai-key
-ANTHROPIC_API_KEY=your-anthropic-key
-GOOGLE_API_KEY=your-google-key
-BRAVE_API_KEY=your-brave-key
-# Add other provider API keys as needed
-```
+The server automatically loads environment variables from a `.env` file in the current directory. You only need to set API keys for the providers you plan to use:
+
+| Variable | Provider | Required For |
+|----------|----------|--------------|
+| `BRAVE_API_KEY` | Brave | Brave search (recommended for structured results) |
+| `ANTHROPIC_API_KEY` | Anthropic | Deep multi-hop research |
+| `OPENAI_API_KEY` | OpenAI | ChatGPT-grade contextual search |
+| `GOOGLE_API_KEY` | Google | Gemini grounding search |
+| `OPENROUTER_API_KEY` | Perplexity | Sonar search variants |
+| `XAI_API_KEY` | xAI | Real-time Grok search |
+
+### Getting API Keys
+
+- **Brave**: [brave.com/search/api](https://brave.com/search/api/)
+- **Anthropic**: [console.anthropic.com](https://console.anthropic.com/)
+- **OpenAI**: [platform.openai.com](https://platform.openai.com/)
+- **Google**: [makersuite.google.com](https://makersuite.google.com/)
+- **OpenRouter**: [openrouter.ai](https://openrouter.ai/)
+- **xAI**: [x.ai](https://x.ai/)
 
 ## Usage
 
