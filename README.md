@@ -29,10 +29,13 @@ Option B: Use an existing `.env` file (must use absolute path):
 #### Claude Code
 ```bash
 # Using ~/.llm.env
-claude mcp add deep-search -s user -- npx -y @just-every/mcp-deep-search -e ENV_FILE=$HOME/.llm.env
+claude mcp add deep-search -s user -- npx -y @just-every/mcp-deep-search --env ENV_FILE=$HOME/.llm.env
 
 # Using existing .env file (absolute path required)
-claude mcp add deep-search -s user -- npx -y @just-every/mcp-deep-search -e ENV_FILE=/absolute/path/to/your/.env
+claude mcp add deep-search -s user -- npx -y @just-every/mcp-deep-search --env ENV_FILE=/absolute/path/to/your/.env
+
+# For debugging, check if ENV_FILE is being passed correctly:
+claude mcp list
 ```
 
 #### Other MCP Clients
@@ -92,6 +95,48 @@ mcp-deep-search search "your query" -p brave
 # Get more results
 mcp-deep-search search "your query" -n 20
 ```
+
+## Troubleshooting
+
+### MCP Server Shows "Failed" in Claude
+
+If you see "deep-search ✘ failed" in Claude, check these common issues:
+
+1. **Missing API Keys**: The most common issue is missing API keys. Check that your ENV_FILE is properly configured:
+   ```bash
+   # Test if ENV_FILE is working
+   ENV_FILE=/path/to/your/.env npx @just-every/mcp-deep-search search "test"
+   ```
+
+2. **Incorrect Installation Command**: Make sure you're using `--env` not `-e`:
+   ```bash
+   # Correct
+   claude mcp add deep-search -s user -- npx -y @just-every/mcp-deep-search --env ENV_FILE=$HOME/.llm.env
+   
+   # Incorrect (won't pass ENV_FILE properly)
+   claude mcp add deep-search -s user -- npx -y @just-every/mcp-deep-search -e ENV_FILE=$HOME/.llm.env
+   ```
+
+3. **Path Issues**: ENV_FILE must use absolute paths:
+   ```bash
+   # Good
+   ENV_FILE=/Users/yourname/.llm.env
+   ENV_FILE=$HOME/.llm.env
+   
+   # Bad
+   ENV_FILE=.env
+   ENV_FILE=~/.llm.env  # ~ not expanded in some contexts
+   ```
+
+4. **Verify Installation**: Check your MCP configuration:
+   ```bash
+   claude mcp list
+   ```
+
+5. **Debug Mode**: For detailed error messages, run manually:
+   ```bash
+   ENV_FILE=/path/to/.env npx @just-every/mcp-deep-search
+   ```
 
 ## Getting API Keys
 
