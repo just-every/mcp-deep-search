@@ -19,7 +19,7 @@
     "build:dev": "tsc",
     "dev": "tsx src/index.ts",
     "start": "node dist/index.js",
-    "serve": "tsx src/serve.ts",
+    "serve": "node dist/serve-restart.js",
     "serve:dev": "tsx src/serve.ts",
     "test": "vitest",
     "test:deploy": "vitest run test/deployment.test.ts",

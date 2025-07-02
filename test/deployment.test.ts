@@ -36,9 +36,9 @@ describe('Deployment Tests', () => {
       serverProcess.stderr.on('data', (data) => {
         stderr += data.toString();
         // Check if server started message appears
-        if (stderr.includes('deep-search MCP server running')) {
+        if (stderr.includes('MCP server connected and running successfully!')) {
           serverProcess.kill();
-          expect(stderr).toContain('deep-search MCP server running');
+          expect(stderr).toContain('MCP server connected and running successfully!');
           resolve();
         }
       });
@@ -69,9 +69,9 @@ describe('Deployment Tests', () => {
       binProcess.stderr.on('data', (data) => {
         stderr += data.toString();
         // Check if server started message appears
-        if (stderr.includes('deep-search MCP server running')) {
+        if (stderr.includes('MCP server connected and running successfully!')) {
           binProcess.kill();
-          expect(stderr).toContain('deep-search MCP server running');
+          expect(stderr).toContain('MCP server connected and running successfully!');
           resolve();
         }
       });

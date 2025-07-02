@@ -147,6 +147,22 @@ If you see "deep-search ✘ failed" in Claude, check these common issues:
 - **OpenRouter**: [openrouter.ai](https://openrouter.ai/)
 - **xAI**: [x.ai](https://x.ai/)
 
+## Auto-Restart Feature
+
+The MCP server includes automatic restart capability by default for improved reliability:
+
+- Automatically restarts the server if it crashes
+- Handles unhandled exceptions and promise rejections
+- Implements exponential backoff (max 10 attempts in 1 minute)
+- Logs all restart attempts for monitoring
+- Gracefully handles shutdown signals (SIGINT, SIGTERM)
+
+For development/debugging without auto-restart:
+```bash
+# Run directly without restart wrapper
+npm run serve:dev
+```
+
 ## License
 
 MIT © Just Every

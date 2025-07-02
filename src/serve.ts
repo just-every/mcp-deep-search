@@ -1,25 +1,32 @@
 #!/usr/bin/env node
 
-// Immediate startup logging
-console.error('[MCP] Server process started, PID:', process.pid);
-console.error('[MCP] Node version:', process.version);
-console.error('[MCP] Working directory:', process.cwd());
-console.error('[MCP] Arguments:', process.argv);
+// Immediate startup logging to stderr for CI debugging
+console.error('[serve.ts] Process started, PID:', process.pid);
+console.error('[serve.ts] Node version:', process.version);
+console.error('[serve.ts] Current directory:', process.cwd());
 
 // Load environment variables BEFORE importing other modules
 import * as dotenv from 'dotenv';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
+import { logger, LogLevel } from './utils/logger.js';
+
+// Enable debug logging for MCP server
+logger.setLevel(LogLevel.DEBUG);
+logger.info('MCP Server starting up...');
+logger.debug('Node version:', process.version);
+logger.debug('Working directory:', process.cwd());
+logger.debug('Environment:', { LOG_LEVEL: process.env.LOG_LEVEL });
 
 // Ensure the process doesn't exit on stdio errors
 process.stdin.on('error', err => {
-    console.error('[MCP] stdin error:', err);
+    logger.error('stdin error:', err);
 });
 process.stdout.on('error', err => {
-    console.error('[MCP] stdout error:', err);
+    logger.error('stdout error:', err);
 });
 process.stderr.on('error', err => {
-    console.error('[MCP] stderr error:', err);
+    logger.error('stderr error:', err);
 });
 
 // Check if ENV_FILE is specified
@@ -43,18 +50,18 @@ if (process.env.ENV_FILE) {
             }
         });
 
-        console.error(`[MCP] Loaded environment from: ${envPath}`);
+        logger.info(`Loaded environment from: ${envPath}`);
     } catch (error) {
-        console.error(`[MCP] Failed to load ENV_FILE: ${error}`);
-        console.error(
-            `[MCP] Please ensure ENV_FILE points to a valid .env file with your API keys`
+        logger.error(`Failed to load ENV_FILE: ${error}`);
+        logger.error(
+            `Please ensure ENV_FILE points to a valid .env file with your API keys`
         );
     }
 } else {
     // Load from standard .env file if present
     dotenv.config();
-    console.error(
-        '[MCP] No ENV_FILE specified, loading from default .env if present'
+    logger.info(
+        'No ENV_FILE specified, loading from default .env if present'
     );
 }
 
@@ -69,12 +76,12 @@ const hasApiKey = [
 ].some(key => process.env[key]);
 
 if (!hasApiKey) {
-    console.error('[MCP] WARNING: No API keys found in environment');
-    console.error(
-        '[MCP] Please set ENV_FILE to point to your .env file with API keys'
+    logger.warn('No API keys found in environment');
+    logger.warn(
+        'Please set ENV_FILE to point to your .env file with API keys'
     );
-    console.error(
-        '[MCP] Example: ENV_FILE=/path/to/.env npx @just-every/mcp-deep-search'
+    logger.warn(
+        'Example: ENV_FILE=/path/to/.env npx @just-every/mcp-deep-search'
     );
 }
 
@@ -88,11 +95,11 @@ import {
     type Tool,
     type Resource,
 } from '@modelcontextprotocol/sdk/types.js';
-console.error('[MCP] About to import @just-every/search...');
+logger.debug('About to import @just-every/search...');
 import { web_search, web_search_task } from '@just-every/search';
-console.error('[MCP] Successfully imported @just-every/search');
+logger.debug('Successfully imported @just-every/search');
 
-console.error('[MCP] Creating server instance...');
+logger.debug('Creating MCP server instance...');
 const server = new Server(
     {
         name: 'deep-search',
@@ -105,17 +112,17 @@ const server = new Server(
         },
     }
 );
-console.error('[MCP] Server instance created');
+logger.info('MCP server instance created successfully');
 
 // Add error handling for the server instance
 server.onerror = error => {
-    console.error('[MCP Server Error]', error);
+    logger.error('MCP Server Error:', error);
 };
 
 // Tool definitions
 const SEARCH_TOOL: Tool = {
     name: 'deep_search',
-    description: 'Perform deep web searches using multiple search providers',
+    description: 'Perform deep web searches to find current information, research topics, or answer questions using real-time data from multiple search providers. Use this when you need up-to-date information beyond your knowledge cutoff.',
     inputSchema: {
         type: 'object',
         properties: {
@@ -152,12 +159,19 @@ const SEARCH_TOOL: Tool = {
         },
         required: ['query'],
     },
+    annotations: {
+        title: 'Deep Web Search',
+        readOnlyHint: true,      // Only searches and reads information
+        destructiveHint: false,   
+        idempotentHint: false,   // Same query might return different results over time
+        openWorldHint: true,     // Interacts with external search providers
+    },
 };
 
 const RESEARCH_TOOL: Tool = {
     name: 'comprehensive_research',
     description:
-        'Perform comprehensive research using multiple search engines automatically with AI agents',
+        'Perform in-depth research on complex topics using AI agents that automatically search multiple sources, analyze findings, and compile comprehensive reports. Ideal for thorough investigations, market research, technical analysis, or any topic requiring deep understanding from multiple perspectives.',
     inputSchema: {
         type: 'object',
         properties: {
@@ -191,25 +205,46 @@ const RESEARCH_TOOL: Tool = {
         },
         required: ['query'],
     },
+    annotations: {
+        title: 'Comprehensive Research',
+        readOnlyHint: true,      // Only researches and reads information
+        destructiveHint: false,   
+        idempotentHint: false,   // Research results may vary over time
+        openWorldHint: true,     // Interacts with external sources and AI models
+    },
 };
 
 // Resources definitions
 const RESOURCES: Resource[] = [];
 
 // Handle tool listing
-server.setRequestHandler(ListToolsRequestSchema, async () => ({
-    tools: [SEARCH_TOOL, RESEARCH_TOOL],
-}));
+server.setRequestHandler(ListToolsRequestSchema, async () => {
+    logger.debug('Received ListTools request');
+    const response = {
+        tools: [SEARCH_TOOL, RESEARCH_TOOL],
+    };
+    logger.debug('Returning tools:', response.tools.map(t => t.name));
+    return response;
+});
 
 // Handle tool execution
 server.setRequestHandler(CallToolRequestSchema, async request => {
+    logger.info('Received CallTool request:', request.params.name);
+    logger.debug('Request params:', JSON.stringify(request.params, null, 2));
+    
     try {
         const args = request.params.arguments as any;
 
         if (request.params.name === 'deep_search') {
-            console.error(
-                `[MCP] Received search request for query: ${args.query}`
+            logger.info(
+                `Processing search request for query: ${args.query}`
             );
+            logger.debug('Search parameters:', {
+                query: args.query,
+                provider: args.provider,
+                maxResults: args.maxResults,
+                includeAnswer: args.includeAnswer,
+            });
 
             // Perform the search
             const resultsJson = await web_search(
@@ -282,9 +317,13 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
 
             return { content };
         } else if (request.params.name === 'comprehensive_research') {
-            console.error(
-                `[MCP] Received comprehensive research request for query: ${args.query}`
+            logger.info(
+                `Processing comprehensive research request for query: ${args.query}`
             );
+            logger.debug('Research parameters:', {
+                query: args.query,
+                modelClass: args.modelClass,
+            });
 
             // Perform comprehensive research
             const report = await web_search_task(
@@ -305,59 +344,74 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
             throw new Error(`Unknown tool: ${request.params.name}`);
         }
     } catch (error: any) {
-        console.error(`[MCP] Error:`, error);
+        logger.error('Error processing request:', error.message);
+        logger.debug('Error stack:', error.stack);
+        logger.debug('Error details:', {
+            name: error.name,
+            code: error.code,
+            ...error,
+        });
         throw error;
     }
 });
 
 // Handle resource listing
-server.setRequestHandler(ListResourcesRequestSchema, async () => ({
-    resources: RESOURCES,
-}));
+server.setRequestHandler(ListResourcesRequestSchema, async () => {
+    logger.debug('Received ListResources request');
+    return {
+        resources: RESOURCES,
+    };
+});
 
 // Handle resource reading
-server.setRequestHandler(ReadResourceRequestSchema, async () => {
+server.setRequestHandler(ReadResourceRequestSchema, async request => {
+    logger.debug('Received ReadResource request:', request.params);
     throw new Error(`No resources available`);
 });
 
 // Start the server
 async function runServer() {
-    console.error('[MCP] runServer() called');
-
-    // Create transport with explicit error handling
-    console.error('[MCP] Creating StdioServerTransport...');
-    const transport = new StdioServerTransport();
-    console.error('[MCP] StdioServerTransport created');
+    try {
+        logger.info('Starting MCP server...');
+        logger.debug('Creating StdioServerTransport...');
+        
+        const transport = new StdioServerTransport();
+        logger.debug('Transport created, connecting to server...');
 
     // Add transport error handling
     transport.onerror = error => {
-        console.error('[Transport Error]', error);
+        logger.error('Transport Error:', error);
         // Don't exit on transport errors unless it's a connection close
         if (error?.message?.includes('Connection closed')) {
-            console.error('Connection closed by client');
+            logger.info('Connection closed by client');
             process.exit(0);
         }
     };
 
     // Handle graceful shutdown
-    process.on('SIGINT', async () => {
-        console.error('Received SIGINT, shutting down gracefully...');
-        await server.close();
-        process.exit(0);
-    });
-
-    process.on('SIGTERM', async () => {
-        console.error('Received SIGTERM, shutting down gracefully...');
-        await server.close();
-        process.exit(0);
-    });
+    const cleanup = async (signal: string) => {
+        logger.info(`Received ${signal}, shutting down gracefully...`);
+        try {
+            await server.close();
+            logger.info('Server closed successfully');
+            process.exit(0);
+        } catch (error) {
+            logger.error('Error during cleanup:', error);
+            process.exit(1);
+        }
+    };
+    
+    process.on('SIGINT', () => cleanup('SIGINT'));
+    process.on('SIGTERM', () => cleanup('SIGTERM'));
 
     // Handle unexpected errors - be more cautious about exiting
     process.on('uncaughtException', error => {
-        console.error('Uncaught exception:', error);
+        logger.error('Uncaught exception:', error.message);
+        logger.error('Stack trace:', error.stack);
+        logger.debug('Full error object:', error);
         // Try to recover instead of immediately exiting
         if (error && error.message && error.message.includes('EPIPE')) {
-            console.error('Pipe error detected, keeping server alive');
+            logger.warn('Pipe error detected, keeping server alive');
             return;
         }
         // Only exit for truly fatal errors
@@ -365,46 +419,62 @@ async function runServer() {
     });
 
     process.on('unhandledRejection', (reason, promise) => {
-        console.error('Unhandled rejection at:', promise, 'reason:', reason);
+        logger.error('Unhandled Rejection at:', promise);
+        logger.error('Rejection reason:', reason);
+        logger.debug('Full rejection details:', { reason, promise });
         // Log but don't exit for promise rejections
     });
 
+    // Log process events
+    process.on('exit', code => {
+        logger.info(`Process exiting with code: ${code}`);
+    });
+    
+    process.on('warning', warning => {
+        logger.warn('Process warning:', warning.message);
+        logger.debug('Warning details:', warning);
+    });
+    
     // Handle stdin closure
     process.stdin.on('end', () => {
-        console.error('Stdin closed, shutting down...');
+        logger.info('Stdin closed, shutting down...');
         // Give a small delay to ensure any final messages are sent
         setTimeout(() => process.exit(0), 100);
     });
 
     process.stdin.on('error', error => {
-        console.error('Stdin error:', error);
+        logger.warn('Stdin error:', error);
         // Don't exit on stdin errors
     });
 
-    try {
-        console.error('[MCP] Attempting to connect server to transport...');
         await server.connect(transport);
-        console.error('[MCP] Server connected successfully');
-        console.error('deep-search MCP server running');
+        logger.info('MCP server connected and running successfully!');
+        logger.info('Ready to receive requests');
+        logger.debug('Server details:', {
+            name: 'deep-search',
+            version: '0.1.0',
+            pid: process.pid,
+        });
+        
+        // Log heartbeat every 30 seconds to show server is alive
+        setInterval(() => {
+            logger.debug('Server heartbeat - still running...');
+        }, 30000);
 
         // Keep the process alive
-        console.error('[MCP] Resuming stdin to keep process alive');
         process.stdin.resume();
-        console.error('[MCP] Server is ready and listening');
-    } catch (error) {
-        console.error('[MCP] Failed to start server:', error);
-        if (error instanceof Error) {
-            console.error('[MCP] Error stack:', error.stack);
-        }
-        process.exit(1);
+    } catch (error: any) {
+        logger.error('Failed to start server:', error.message);
+        logger.debug('Startup error details:', error);
+        throw error;
     }
 }
 
-console.error('[MCP] Starting server initialization...');
+// Start the server
+logger.info('Initializing MCP server...');
 runServer().catch(error => {
-    console.error('[MCP] Server initialization error:', error);
-    if (error instanceof Error) {
-        console.error('[MCP] Error stack:', error.stack);
-    }
+    logger.error('Fatal server error:', error.message);
+    logger.error('Stack trace:', error.stack);
+    logger.debug('Full error:', error);
     process.exit(1);
 });
