@@ -29,10 +29,10 @@ Option B: Use an existing `.env` file (must use absolute path):
 #### Claude Code
 ```bash
 # Using ~/.llm.env
-claude mcp add deep-search -s user -- npx -y @just-every/mcp-deep-search --env ENV_FILE=$HOME/.llm.env
+claude mcp add deep-search -s user -e ENV_FILE=$HOME/.llm.env -- npx -y @just-every/mcp-deep-search
 
 # Using existing .env file (absolute path required)
-claude mcp add deep-search -s user -- npx -y @just-every/mcp-deep-search --env ENV_FILE=/absolute/path/to/your/.env
+claude mcp add deep-search -s user -e ENV_FILE=/absolute/path/to/your/.env -- npx -y @just-every/mcp-deep-search
 
 # For debugging, check if ENV_FILE is being passed correctly:
 claude mcp list
@@ -108,13 +108,13 @@ If you see "deep-search ✘ failed" in Claude, check these common issues:
    ENV_FILE=/path/to/your/.env npx @just-every/mcp-deep-search search "test"
    ```
 
-2. **Incorrect Installation Command**: Make sure you're using `--env` not `-e`:
+2. **Incorrect Installation Command**: Make sure you're using `-e` for environment variables:
    ```bash
-   # Correct
-   claude mcp add deep-search -s user -- npx -y @just-every/mcp-deep-search --env ENV_FILE=$HOME/.llm.env
+   # Correct - environment variable passed with -e flag before --
+   claude mcp add deep-search -s user -e ENV_FILE=$HOME/.llm.env -- npx -y @just-every/mcp-deep-search
    
-   # Incorrect (won't pass ENV_FILE properly)
-   claude mcp add deep-search -s user -- npx -y @just-every/mcp-deep-search -e ENV_FILE=$HOME/.llm.env
+   # Incorrect - trying to pass as argument
+   claude mcp add deep-search -s user -- npx -y @just-every/mcp-deep-search --env ENV_FILE=$HOME/.llm.env
    ```
 
 3. **Path Issues**: ENV_FILE must use absolute paths:
