@@ -70,5 +70,8 @@
   "engines": {
     "node": ">=20.0.0"
   },
-  "type": "module"
+  "type": "module",
+  "overrides": {
+    "@hono/node-server": "2.0.11"
+  }
 }
