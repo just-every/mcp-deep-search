@@ -72,6 +72,8 @@
   },
   "type": "module",
   "overrides": {
-    "@hono/node-server": "2.0.11"
+    "@hono/node-server": "2.0.11",
+    "hono": "4.12.34",
+    "ip-address": "10.2.2"
   }
 }
